@@ -28,17 +28,17 @@ resource "aws_security_group" "ec2" {
 #   instance_id = aws_instance.my_instance.id
 # }
 
-# 事前に作成されたSSHキーを使用
+# use a ssh key already existing
 resource "aws_key_pair" "my_key" {
-  key_name   = "${var.prefix}-key"   # 使用するキーの名前
-  public_key = file("~/.ssh/id_rsa.pub") # ローカルの公開鍵ファイルのパス
+  key_name   = "${var.prefix}-key"  
+  public_key = file("~/.ssh/id_rsa.pub") 
 }
 
 # EBSボリュームを作成
 resource "aws_ebs_volume" "example" {
   availability_zone = aws_instance.my_instance.availability_zone
-  size              = 100  # ボリュームサイズ（GB）
-  type              = "gp3"  # 高性能なGeneral Purpose SSD
+  size              = 100  # volume size（GB）
+  type              = "gp3"  # high throughtput General Purpose SSD
   iops              = 8000
   throughput        = 500
   # lifecycle {
@@ -68,7 +68,7 @@ resource "aws_instance" "my_instance" {
   }
 
   # Provide the path to your public SSH key on the local machine
-  key_name = aws_key_pair.my_key.key_name # SSHキーを指定
+  key_name = aws_key_pair.my_key.key_name # specify SSH key
   associate_public_ip_address = true
 
   user_data = templatefile("setup.sh", {

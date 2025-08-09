@@ -25,7 +25,7 @@ EOF
 
 cat <<EOF > /home/rally/run-rally-eslogs-ingest.sh
 esrally race --track=elastic/logs --challenge=logging-indexing \
---track-params=ingest_percentage:1,max_total_download_gb:1,number_of_replicas:1,bulk_indexing_clients:3,cluster_health:yellow \
+--track-params=ingest_percentage:1,max_total_download_gb:1,number_of_replicas:1,bulk_indexing_clients:3,wait_for_status:yellow \
 --target-hosts=${ES_HOST} --pipeline=benchmark-only \
 --client-options="use_ssl:true,verify_certs:true,api_key:'${ES_API_KEY}'" \
 --kill-running-processes
@@ -33,7 +33,7 @@ EOF
 
 cat <<EOF > /home/rally/run-rally-eslogs-query.sh
 esrally race --track=elastic/logs --challenge=logging-querying \
---track-params=ingest_percentage:1,max_total_download_gb:1,number_of_replicas:1,bulk_indexing_clients:3,cluster_health:yellow \
+--track-params=ingest_percentage:1,max_total_download_gb:1,number_of_replicas:1,bulk_indexing_clients:3,wait_for_status:yellow \
 --target-hosts=${ES_HOST} --pipeline=benchmark-only \
 --client-options="use_ssl:true,verify_certs:true,api_key:'${ES_API_KEY}'" \
 --kill-running-processes
@@ -59,6 +59,14 @@ EOF
 cat <<EOF > /home/rally/run-rally-k8_metrics.sh
 esrally race --track=k8s_metrics --challenge=append-no-conflicts-metrics-index-only \
 --track-params=ingest_percentage:1,number_of_replicas:1,bulk_indexing_clients:3,cluster_health:yellow \
+--target-hosts=${ES_HOST} --pipeline=benchmark-only \
+--client-options="use_ssl:true,verify_certs:true,api_key:'${ES_API_KEY}'" \
+--kill-running-processes
+EOF
+
+cat <<EOF > /home/rally/run-rally-cohere-vector.sh
+esrally race --track=cohere_vector \
+--track-params=number_of_replicas:0 \
 --target-hosts=${ES_HOST} --pipeline=benchmark-only \
 --client-options="use_ssl:true,verify_certs:true,api_key:'${ES_API_KEY}'" \
 --kill-running-processes

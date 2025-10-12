@@ -49,7 +49,7 @@ resource "aws_ebs_volume" "rally_data" {
 
 # Attach EBS volume to EC2 instance
 resource "aws_volume_attachment" "rally_data" {
-  device_name = "/dev/xvdf"
+  device_name = "/dev/sdf"
   volume_id   = aws_ebs_volume.rally_data.id
   instance_id = aws_instance.rally.id
 }

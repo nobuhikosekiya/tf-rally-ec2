@@ -16,5 +16,5 @@ output "security_group_id" {
 
 output "ssh_connection" {
   description = "SSH connection command"
-  value       = "ssh rally@${aws_instance.rally.public_ip}"
+  value       = "ssh ubuntu@${aws_instance.rally.public_ip}"
 }

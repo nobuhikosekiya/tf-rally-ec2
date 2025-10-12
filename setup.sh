@@ -2,10 +2,11 @@
 echo test of user_data `pwd`| sudo tee /tmp/user_data.log
 
 sudo apt update
-sudo apt install -y python3-pip
+# sudo apt install -y python3-pip
+sudo apt install -y python3 python3-venv python3-pip
 sudo apt install -y git
-sudo pip install esrally
-sudo apt-get install -y pbzip2
+#sudo pip install esrally #does not work
+sudo apt install -y pbzip2
 
 sudo useradd -m -d /home/rally -s /bin/bash rally
 sudo echo "rally:rally" | chpasswd
@@ -16,14 +17,25 @@ sudo mount /dev/nvme1n1 /home/rally  # Mount the EBS volume to the directory
 echo '/dev/nvme1n1 /home/rally  ext4 defaults,nofail 0 0' | sudo tee -a /etc/fstab  # Add an entry to /etc/fstab for auto-mount
 
 cat <<EOF > /home/rally/run-rally-httplogs.sh
+source ~/myenv/bin/activate
 esrally race --track=http_logs --challenge=append-no-conflicts \
 --track-params=number_of_replicas:1,cluster_health:yellow \
+--target-hosts=${ES_HOST} --pipeline=benchmark-only \
+--client-options="use_ssl:true,verify_certs:true,api_key:'${ES_API_KEY}'" \
+--kill-running-processes --offline
+EOF
+
+cat <<EOF > /home/rally/run-rally-security-ingest.sh
+source ~/myenv/bin/activate
+esrally race --track=elastic/security --challenge=security-indexing \
+--track-params=wait_for_status:yellow \
 --target-hosts=${ES_HOST} --pipeline=benchmark-only \
 --client-options="use_ssl:true,verify_certs:true,api_key:'${ES_API_KEY}'" \
 --kill-running-processes
 EOF
 
 cat <<EOF > /home/rally/run-rally-eslogs-ingest.sh
+source ~/myenv/bin/activate
 esrally race --track=elastic/logs --challenge=logging-indexing \
 --track-params=ingest_percentage:1,max_total_download_gb:1,number_of_replicas:1,bulk_indexing_clients:3,wait_for_status:yellow \
 --target-hosts=${ES_HOST} --pipeline=benchmark-only \
@@ -32,6 +44,7 @@ esrally race --track=elastic/logs --challenge=logging-indexing \
 EOF
 
 cat <<EOF > /home/rally/run-rally-eslogs-query.sh
+source ~/myenv/bin/activate
 esrally race --track=elastic/logs --challenge=logging-querying \
 --track-params=ingest_percentage:1,max_total_download_gb:1,number_of_replicas:1,bulk_indexing_clients:3,wait_for_status:yellow \
 --target-hosts=${ES_HOST} --pipeline=benchmark-only \
@@ -40,6 +53,7 @@ esrally race --track=elastic/logs --challenge=logging-querying \
 EOF
 
 cat <<EOF > /home/rally/run-rally-geonames.sh
+source ~/myenv/bin/activate
 esrally race --track=geonames \
 --track-params="ingest_percentage:1,number_of_replicas:1,number_of_shards:2,cluster_health:yellow" \
 --target-hosts=${ES_HOST} --pipeline=benchmark-only \
@@ -49,6 +63,7 @@ esrally race --track=geonames \
 EOF
 
 cat <<EOF > /home/rally/run-rally-sql.sh
+source ~/myenv/bin/activate
 esrally race --track=sql \
 --track-params=ingest_percentage:1,query_percentage:10,post_ingest_sleep_duration:10,number_of_replicas:1,cluster_health:yellow \
 --target-hosts=${ES_HOST} --pipeline=benchmark-only \
@@ -57,6 +72,7 @@ esrally race --track=sql \
 EOF
 
 cat <<EOF > /home/rally/run-rally-k8_metrics.sh
+source ~/myenv/bin/activate
 esrally race --track=k8s_metrics --challenge=append-no-conflicts-metrics-index-only \
 --track-params=ingest_percentage:1,number_of_replicas:1,bulk_indexing_clients:3,cluster_health:yellow \
 --target-hosts=${ES_HOST} --pipeline=benchmark-only \
@@ -65,6 +81,7 @@ esrally race --track=k8s_metrics --challenge=append-no-conflicts-metrics-index-o
 EOF
 
 cat <<EOF > /home/rally/run-rally-cohere-vector.sh
+source ~/myenv/bin/activate
 esrally race --track=cohere_vector \
 --track-params=number_of_replicas:0 \
 --target-hosts=${ES_HOST} --pipeline=benchmark-only \
@@ -74,3 +91,8 @@ EOF
 
 sudo chown -R rally:rally /home/rally
 sudo chmod +x /home/rally/*.sh
+sudo -u rally bash -c '
+  python3 -m venv ~/myenv
+  source ~/myenv/bin/activate
+  pip install esrally
+'

@@ -4,7 +4,7 @@ prefix      = "rally-test"
 
 # EC2 Configuration
 ec2_instance_type   = "m5.large"
-ec2_ami_id          = "ami-0599b6e53ca798bb2"
+ec2_ami_id          = "ami-026c39f4021df9abe"
 ssh_public_key_path = "~/.ssh/id_rsa.pub"
 ebs_volume_size     = 100
 
